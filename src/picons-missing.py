@@ -27,6 +27,7 @@ def missingPicons():
 	outlog4 = "utf8-picon-names"
 	outlog5 = "utf8-picon-list"  # not CSV
 	logExt = ".csv"
+	logExtPlain = ".txt"
 	piconOutFolder = "/picon/"
 	messages1 = []
 	messages2 = {}
@@ -197,7 +198,7 @@ def missingPicons():
 	for message in messages5:
 		log.append('%s=%s\n' % (message[0], message[1]))
 	log.sort(key=lambda x: x.split("=", 1)[0])
-	zf.writestr(outlog5, "".join(log))  # don't use logExt
+	zf.writestr(outlog5 + logExtPlain, "".join(log))  # don't use logExt
 	
 
 
