@@ -26,6 +26,7 @@ def missingPicons():
 	outlog3 = "impossible-picons"
 	outlog4 = "utf8-picon-names"
 	outlog5 = "utf8-picon-list"  # not CSV
+	outlog6 = "missing-utf8-picons"
 	logExt = ".csv"
 	logExtPlain = ".txt"
 	piconOutFolder = "/picon/"
@@ -36,6 +37,7 @@ def missingPicons():
 	messages = []
 	messages4 = []
 	messages5 = []
+	messages6 = []
 	paths = []
 	pattern = "*.png"
 	serviceTypes = []
@@ -96,6 +98,10 @@ def missingPicons():
 				messages5.append((utf8_name_short, ocram_str))
 			else:
 				utf8_name = ""  # utf8 name is not valid so truncate it
+
+			if utf8_name and utf8_name not in paths:
+				messages6.append((name, sat, refstr, utf8_name))
+
 			if (name and newName2 and newPiconName in paths) or oldPiconName in paths or oldPiconName2 in paths or utf8_name and utf8_name in paths:
 				#found = True
 				if newName2 and newPiconName in paths:
@@ -133,6 +139,7 @@ def missingPicons():
 	#messages2 = sortByValue(messages2, 0)
 	#messages3 = sortByValue(messages3, 2)
 	messages4.sort()
+	messages6 = sortByValue(messages6, 0)
 	
 	messages = sortByValueRecursive(messages, sortOrder)
 	#all = []
@@ -199,6 +206,11 @@ def missingPicons():
 		log.append('%s=%s\n' % (message[0], message[1]))
 	log.sort(key=lambda x: x.split("=", 1)[0])
 	zf.writestr(outlog5 + logExtPlain, "".join(log))  # don't use logExt
+
+	log = ['Channel name,Orbital,Service ref,Picon name\n']
+	for message in messages6:
+		log.append('"%s","%s","%s","%s"\n' % (control_char_re.sub('', message[0]),satname(message[1]),message[2], message[3]))
+	zf.writestr(outlog6 + logExt, "".join(log))
 	
 
 
