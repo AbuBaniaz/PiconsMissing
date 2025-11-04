@@ -43,10 +43,10 @@ def missingPicons():
 	serviceTypes = []
 	print("Searching for picons...")
 	if os.path.isdir(tmpPicon):
-		paths = glob.glob(tmpPicon + pattern)
+		paths = glob.glob(tmpPicon + pattern, include_hidden=True)
 	else:
 		for l in piconLocations:
-			paths = paths + glob.glob(l + pattern)
+			paths = paths + glob.glob(l + pattern, include_hidden=True)
 	pathsSplit = []
 	for p in paths:
 		pathsSplit.append(p.rsplit('/',1))
