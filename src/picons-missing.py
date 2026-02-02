@@ -1,4 +1,6 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 import sys, unicodedata, re, os, glob, zipfile
 from time import strftime
 import json
@@ -27,6 +29,7 @@ def missingPicons():
 	outlog4 = "utf8-picon-names"
 	outlog5 = "utf8-picon-list"  # not CSV
 	outlog6 = "missing-utf8-picons"
+	outlog7 = "bouquet-servicenames"
 	logExt = ".csv"
 	logExtPlain = ".txt"
 	piconOutFolder = "/picon/"
@@ -38,6 +41,7 @@ def missingPicons():
 	messages4 = []
 	messages5 = []
 	messages6 = []
+	messages7 = []
 	paths = []
 	pattern = "*.png"
 	serviceTypes = []
@@ -140,6 +144,7 @@ def missingPicons():
 	#messages3 = sortByValue(messages3, 2)
 	messages4.sort()
 	messages6 = sortByValue(messages6, 0)
+	messages7 = bouquetServiceNames()
 	
 	messages = sortByValueRecursive(messages, sortOrder)
 	#all = []
@@ -201,17 +206,25 @@ def missingPicons():
 		log.append('"%s","%s","%s","%s"\n' % (message[0], satname(message[1]), message[2], message[3]))
 	zf.writestr(outlog4 + logExt, "".join(log))
 
+	print("write UTF8 picon list")
 	log = []
 	for message in messages5:
 		log.append('%s=%s\n' % (message[0], message[1]))
 	log.sort(key=lambda x: x.split("=", 1)[0])
 	zf.writestr(outlog5 + logExtPlain, "".join(log))  # don't use logExt
 
+	print("write missing UTF8 picons")
 	log = ['Channel name,Orbital,Service ref,Picon name\n']
 	for message in messages6:
 		log.append('"%s","%s","%s","%s"\n' % (control_char_re.sub('', message[0]),satname(message[1]),message[2], message[3]))
 	zf.writestr(outlog6 + logExt, "".join(log))
-	
+
+	print("write bouquet service names")
+	if messages7:
+		log = ['Channel name,Orbital,SRP key,UTF8 picon name\n']
+		for message in messages7:
+			log.append('"%s","%s","%s","%s"\n' % (message["sname"], "stream" if message["stream"] else satname(message["sat"]), message["srp_key"], message["utf8_name"]))
+		zf.writestr(outlog7 + logExt, "".join(log))
 
 
 	
@@ -362,5 +375,78 @@ def sanitizeFilename(filename, maxlen=255):  # 255 is max length in ext4 (and mo
 	if len(filename) == 0:
 		filename = "__"
 	return filename
-			
+
+
+class BouquetsReader():
+	def parseBouquetIndex(self, path, content):
+		ret = []
+		rows = content.split("\n")
+		for row in rows:
+			result = re.match("^.*FROM BOUQUET \"(.+)\" ORDER BY.*$", row) or re.match("[#]SERVICE[:] (?:[0-9a-f]+[:])+([^:]+[.](?:tv|radio))$", row, re.IGNORECASE)
+			if result is None:
+				continue
+			filename = result.group(1)
+			try:
+				firstline = open(path + "/" + filename, "rb").read().split(b"\n")[0].decode(errors="ignore").strip()
+			except:
+				continue
+			if firstline[:6] == "#NAME ":
+				bouquetname = firstline[6:]
+			else:
+				bouquetname = "Unknown"
+			ret.append({"filename": filename, "name": bouquetname})
+		return ret
+
+	def getBouquetsList(self, path):
+		ret = {}
+		for bouquet_type in ["tv", "radio"]:
+			try:
+				content = open(path + "/bouquets." + bouquet_type, "r").read()
+			except:
+				continue
+			ret[bouquet_type] = self.parseBouquetIndex(path, content)
+		return ret
+
+
+def bouquetServiceNames():
+	print("Reading bouquets...")
+	path = "/etc/enigma2"
+	snames = []
+	bouquets = BouquetsReader().getBouquetsList(path)
+	for bouquet_type in ["tv", "radio"]:
+		for bouquet in bouquets[bouquet_type]:
+			try:
+				content = open(path + "/" + bouquet["filename"], "rb").read().decode(encoding="utf-8", errors="ignore").splitlines()
+			except:
+				continue
+			# print("Bouquet name", bouquet["name"])
+			# print("Bouquet name", bouquet["filename"])
+			for i, line in enumerate(content):
+				sname = None
+				stream = False
+				sat = 0
+				if line.startswith("#SERVICE "):
+					ref = line[9:].split(":", 11)
+					if not (len(ref) > 10 and not int(ref[1], 16)):  # not a valid ref, or ref flags are set
+						continue
+					if ("%X" % (sat := (int(ref[6], 16) >> 16)) != "CCCC"):  # skip namespace CCCC0000 as these refs have been created by a plugin such as M3UIPTV or PlutoTV
+						if "%3a//" in ref[10]:
+							stream = True
+						if len(ref) > 11:
+							sname = ref[11].split("•", 1)[0].strip() or None
+						if len(content) > i + 1 and content[i + 1].startswith("#DESCRIPTION "):
+								sname = content[i + 1][13:].split("•", 1)[0].strip() or None
+				if sname:
+					utf8_name = sanitizeFilename(sname).lower()
+					if not utf8_name or utf8_name == "__" or "SID 0x" in sname or sname.replace(".", "").isdecimal():
+						continue
+					# print(sname, str(stream), "_".join(ref[3:7]).upper())
+					entry = {"sname": sname, "utf8_name": utf8_name, "srp_key": "_".join(ref[3:7])[:-4].upper() + "0000", "stream": stream, "sat": sat}
+					if entry not in snames:
+						snames.append(entry)
+	
+	snames.sort(key=lambda x: x["sname"])
+	return snames
+
+
 missingPicons()
