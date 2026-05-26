@@ -268,7 +268,7 @@ def sortByValueRecursive(inputList, sortKey=[], level = 0): # Sort case insensit
 	if isinstance(sortKey, int):
 		sortKey = [sortKey]
 	if len(sortKey) < 1 or len(sortKey) > len(inputList[0]):
-		return inputList
+		return sorted(inputList, key=lambda listItem: listItem[0].lower() if listItem[0] else "")
 	if len(sortKey) == 1:
 		print("level(upper):", level)
 		return sorted(inputList, key=lambda listItem: (listItem[sortKey[0]] if isinstance(listItem[sortKey[0]], int) else  listItem[sortKey[0]].lower()))
