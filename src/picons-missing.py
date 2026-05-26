@@ -189,7 +189,7 @@ def missingPicons():
 	for message in messages:
 		log.append('"%s","%s",%s,"%s",%s,"%s",%i,%s,%s\n' % (message[0], message[2][:-4], message[7] and message[7][:-4], message[1][:-4], message[5], satname(message[3]), message[4], message[6], message[8]))
 # end: edit 1
-	zf.writestr(outlog2 + '-all_services' + logExt, "".join(log))
+	zf.writestr(outlog2 + '-all_services' + logExt, "".join(log).encode('utf-8-sig'))
 	
 	#found picons... (channel_name, sat, service_ref, picon_name_short, picon_name_full)
 	control_chars = ''.join(map(chr, list(range(0,32)) + list(range(127,160))))
@@ -198,13 +198,13 @@ def missingPicons():
 	log = ['Channel name,Orbital,Service ref,Picon name,Picon path\n']
 	for message in messages1:
 		log.append('"%s","%s","%s","%s",%s\n' % (control_char_re.sub('', message[0]),satname(message[1]),message[2], message[3], message[4]))
-	zf.writestr(outlog1 + logExt, "".join(log))
+	zf.writestr(outlog1 + logExt, "".join(log).encode('utf-8-sig'))
 
 	print("write UTF8")
 	log = ['Channel name,Orbital,UTF8 picon name,Service ref\n']
 	for message in messages4:
 		log.append('"%s","%s","%s","%s"\n' % (message[0], satname(message[1]), message[2], message[3]))
-	zf.writestr(outlog4 + logExt, "".join(log))
+	zf.writestr(outlog4 + logExt, "".join(log).encode('utf-8-sig'))
 
 	print("write UTF8 picon list")
 	log = []
@@ -217,14 +217,14 @@ def missingPicons():
 	log = ['Channel name,Orbital,Service ref,Picon name\n']
 	for message in messages6:
 		log.append('"%s","%s","%s","%s"\n' % (control_char_re.sub('', message[0]),satname(message[1]),message[2], message[3]))
-	zf.writestr(outlog6 + logExt, "".join(log))
+	zf.writestr(outlog6 + logExt, "".join(log).encode('utf-8-sig'))
 
 	print("write bouquet service names")
 	if messages7:
 		log = ['Channel name,Orbital,SRP key,UTF8 picon name\n']
 		for message in messages7:
 			log.append('"%s","%s","%s","%s"\n' % (message["sname"], "stream" if message["stream"] else satname(message["sat"]), message["srp_key"], message["utf8_name"]))
-		zf.writestr(outlog7 + logExt, "".join(log))
+		zf.writestr(outlog7 + logExt, "".join(log).encode('utf-8-sig'))
 
 
 	
