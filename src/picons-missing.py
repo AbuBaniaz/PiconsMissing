@@ -216,7 +216,7 @@ def missingPicons():
 	print("write missing UTF8 picons")
 	log = ['Channel name,Orbital,Service ref,UTF8 Picon name\n']
 	for message in messages6:
-		log.append('"%s","%s","%s","%s"\n' % (control_char_re.sub('', message[0]),satname(message[1]),message[2], message[3]))
+		log.append('"%s","%s","%s","%s"\n' % (control_char_re.sub('', message[0]),satname(message[1]),message[2], message[3][:-4]))
 	zf.writestr(outlog6 + logExt, "".join(log).encode('utf-8-sig'))
 
 	print("write bouquet service names")
