@@ -214,7 +214,7 @@ def missingPicons():
 	zf.writestr(outlog5 + logExtPlain, "".join(log))  # don't use logExt
 
 	print("write missing UTF8 picons")
-	log = ['Channel name,Orbital,Service ref,Picon name\n']
+	log = ['Channel name,Orbital,Service ref,UTF8 Picon name\n']
 	for message in messages6:
 		log.append('"%s","%s","%s","%s"\n' % (control_char_re.sub('', message[0]),satname(message[1]),message[2], message[3]))
 	zf.writestr(outlog6 + logExt, "".join(log).encode('utf-8-sig'))
