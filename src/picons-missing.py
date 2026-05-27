@@ -185,7 +185,7 @@ def missingPicons():
 
 # start: edit 1
 	print("write missing")
-	log = ['Channel name,SRP name,utf8_name,SNP name,Ocram database,Orbital,DVB type,symlink,utf8_symlink\n']
+	log = ['Channel name,SRP name,utf8_name,SNP name,Ocram database,Orbital,DVB type,snp_symlink,utf8_symlink\n']
 	for message in messages:
 		log.append('"%s","%s",%s,"%s",%s,"%s",%i,%s,%s\n' % (message[0], message[2][:-4], message[7] and message[7][:-4], message[1][:-4], message[5], satname(message[3]), message[4], message[6], message[8]))
 # end: edit 1
